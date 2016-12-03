@@ -219,4 +219,4 @@ TypeJSON top level object can only have two properties. The first is `type` with
 
 ## Libraries
 
-Currently none as I want to run this by a bunch of programmers first to see if I an crazy to build it this way. What do you think? Please leave feedback in the comments below and see if we can't make a better strongly typed JSON format.
+Currently none as I want to run this by a bunch of programmers first to see if I am crazy to build it this way. What do you think? Please leave feedback in the comments below and see if we can't make a better strongly typed JSON format.
