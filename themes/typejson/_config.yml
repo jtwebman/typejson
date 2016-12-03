@@ -1,0 +1,42 @@
+# Header
+menu:
+  Github:
+    url: https://github.com/jtwebman/typejson
+    icon: github
+  Twitter:
+    url: https://twitter.com/jtwebman
+    icon: twitter
+
+# Title on top left of menu. Leave empty to use main blog title
+menu_title:
+
+# URL of the Home page image
+index_cover: /img/home-bg.jpg
+
+# Default post title
+default_post_title: Untitled
+
+# Comments. Choose one by filling up the information
+comments:
+  # Disqus comments
+  disqus_shortname:
+  # Facebook comments
+  facebook:
+    appid:
+    comment_count: 5
+    comment_colorscheme: light
+
+# Google Analytics Tracking ID
+google_analytics:
+
+# set your own favicon
+favicon:
+
+# Social Accounts
+twitter_url: https://twitter.com/jtwebman
+twitter_handle: jtwebman
+facebook_url: https://facebook.com/jtwebman
+github_url: https://github.com/jtwebman/typejson
+gitlab_url:
+linkedin_url: https://www.linkedin.com/in/jtwebman
+mailto:
