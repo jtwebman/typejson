@@ -1,6 +1,7 @@
 ---
 title: TypeJSON
 subtitle: Strongly Typed JSON
+comments: true
 ---
 # TypeJSON - What is this?
 

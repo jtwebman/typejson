@@ -16,16 +16,6 @@ index_cover: /img/home-bg.jpg
 # Default post title
 default_post_title: Untitled
 
-# Comments. Choose one by filling up the information
-comments:
-  # Disqus comments
-  disqus_shortname:
-  # Facebook comments
-  facebook:
-    appid:
-    comment_count: 5
-    comment_colorscheme: light
-
 # Google Analytics Tracking ID
 google_analytics:
 
