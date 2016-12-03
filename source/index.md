@@ -143,6 +143,7 @@ Here is an example of an array of cities objects in TypeJSON:
   ]
 }
 ```
+Notice you have to define the top level type `cities` in this example. Also notice to make it an array type it was surrounded buy `[]`.
 
 ## Union types
 
