@@ -6,7 +6,7 @@ subtitle: Strongly Typed JSON
 
 This is my thoughts on making a Strongly Typed JSON format. I plan on writing a TypeScript, Elm, and PureScript implementation of this. If you want to help out and build a library in your favorite typed language go ahead and let me know so I can update this page.
 
-All values in TypeJSON have a type. The advantage is it is all built in standard JSON formate.
+All values in TypeJSON have a type. The advantage is it is all built in standard JSON format. No special property names.
 
 The following JSON:
 ```json
