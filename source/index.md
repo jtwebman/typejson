@@ -33,21 +33,22 @@ And this TypeJSON for the same thing.
   }
 }
 ```
-TypeJSON you define all the types ahead of time in a JSON object. This way everything in the `type` property can just be serialized using the standard JSON way. Though many of the new supported basic types have to be strings to not lose values.
+TypeJSON you define all the types ahead of time in a JSON object. Everything is still in a normal JSON format, though many of the new supported basic types have to be strings to not lose values.
 
 ## Basic Types
 
-There basic types to map better with other typed languages are as follows
-- **int** (32-bit Signed Integer)
-- **long** (64-bit Signed Integer)
-- **float** (32-bit Floating Point)
-- **decimal** (Need to include precision and scale separated by `:`)
-- **byte** (8-bit Signed Integer )
-- **short** (16-bit Signed Integer)
-- **date** (YYYY-MM-DD format)
-- **time** (HH:MM:SS format with a 24 hour clock for hour)
-- **datetime** (ISO 8601 adjusted to UTC, no timezone)
-- **uuid** (UUID in canonical form)
+The basic types to map better with other typed languages are as follows:
+
+- **int** (32-bit Signed Integer, can be a number or a string)
+- **long** (64-bit Signed Integer, needs to be a string)
+- **float** (32-bit Floating Point, can be a number or a string)
+- **decimal** (Need to include precision and scale separated by `:`, needs to be a string)
+- **byte** (8-bit Signed Integer, can be a number or a string)
+- **short** (16-bit Signed Integer, can be a number or a string)
+- **date** (YYYY-MM-DD format, needs to be a string)
+- **time** (HH:MM:SS format with a 24 hour clock for hour, needs to be a string)
+- **datetime** (ISO 8601 adjusted to UTC, no timezone, needs to be a string)
+- **uuid** (UUID in canonical form, needs to be a string)
 - **bool** (Normal JSON boolean)
 - **string** (UTF-8 String)
 
@@ -113,9 +114,9 @@ Here is an example allowing nulls in TypeJSON:
 
 ## Arrays and Objects (Custom Types)
 
-Arrays and Objects in TypeJSON need to have a type defined and everything in that array will need to be the same type. This does mean something that could be parsed in JSON could error in TypeJSON.
+Arrays and Objects in TypeJSON need to have a type defined and everything in that array will need to be the same type, though we support union types, see below. This does mean something that could be parsed in JSON could error in TypeJSON.
 
-Here is an example of and array of cities objects in TypeJSON:
+Here is an example of an array of cities objects in TypeJSON:
 ```json
 {
   "type": {
@@ -144,22 +145,23 @@ Here is an example of and array of cities objects in TypeJSON:
 
 ## Union types
 
-Last TypeJSON supports Union Type. To make them you just separate the types by a `|`. This lets you support the full power of using something like JSON and still staying type safe. A union type is a type that can represent multiple types but since the parser needs to be able to infer them they can only be object types and each type needs to have different property names.
+Last TypeJSON supports union types. To make them you just separate the types by a `|`. This lets you support the full power of using something like JSON and still staying type safe. A union type is a type that can represent multiple types but since the parser needs to be able to infer them they can only be object types and each type needs to have different property names. We don't support basic types in union types but you could build a simple object type to get around this.
 
 Here is an example using a union type:
 ```json
 {
   "type": {
+    "id": "uuid",
     "city": {
-      "id": "uuid",
+      "id": "id",
       "city": "string"
     },
     "state": {
-      "id": "uuid",
+      "id": "id",
       "state": "string"
     },
     "country": {
-      "id": "uuid",
+      "id": "id",
       "country": "string"
     },
     "locations": "[city|state|country]"
