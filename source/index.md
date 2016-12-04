@@ -15,6 +15,10 @@ Reasons for using TypeJSON vs JSON Schema:
 
 - JSON Schema is missing union types. It does have anyOf or oneOf but that is only for arrays and not for basic single property types. TypeJSON has a Union type. This would allow you to define a endpoint that could return many different types.
 
+The TypeJSON parser can be just a simple parser on top of the already existing JSON parsers that will allow you to define functions to be called for each type or if your languages supports pattern matching you could use that. This will definitely depend on what language it is implemented in.
+
+The number one goal of TypeJSON is to make it less work for you to map JSON to your types not to validate what is in that type is valid.
+
 # TypeJSON Explained
 
 TypeJSON is a separate file like JSON Schema. Here is a basic example.
@@ -179,7 +183,7 @@ Last TypeJSON supports union types. A union type is a type that can represent mu
 
 TypeJSON needs to be able to infer the type so it will try and match the type in the order they are given. Say you had a type `long|string`. Since longs have to be strings in JSON to not lose values the TypeJSON parse will first try and make a long from the string. If it doesn't match it will then just leave it a string.
 
-Here is an example using a union type in an array. It also alias `uuid` as a type id. You then could then handle the `id` type in the parser.
+Here is an example using a union type in an array. It also alias `uuid` as a type id. You could then handle the `id` type in the parser.
 
 TypeJSON:
 ```json
@@ -287,6 +291,91 @@ locations.json (With just root):
 }
 ```
 
+## Adding TypeJSON support to Your API
+
+TypeJSON content-type is `application/json` but if your API supports TypeJSON you will need to implement a few things to make it easier for the consumer to know the types.
+
+First you will need to set another http header `TypeJSON` that will be set to the uri of the root type for all responses that have a body.
+
+Here is an example of a basic get user http request and response with headers.
+
+API Request:
+```http
+GET /api/v1/users/1
+Host: testsite.com
+Content-Type: application/json
+Cache-Control: no-cache
+```
+
+API Response (Notice the TypeJSON header):
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 94
+TypeJSON: /api/v1/types/user
+
+{
+  "id": "1",
+  "email": "test@testsite.com",
+  "firstName": "Test",
+  "lastName": "User"
+}
+```
+
+TypeJSON Request:
+```http
+GET /api/v1/types/user
+Host: testsite.com
+Content-Type: application/json
+Cache-Control: no-cache
+```
+
+TypeJSON Response:
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 114
+
+{
+  "root": {
+    "id": "int",
+    "email": "string",
+    "firstName": "string?",
+    "lastName": "string?"
+  }
+}
+```
+
+The new TypeJSON header is useful but it is more of an after the fact thing. To support TypeJSON in full you need to also support the HTTP Option request. This will return all the allowed request types for the end-point. It will also have a body that is JSON and has a type set for each request type that has a type in the request or response body. If it is not set then that request or response doesn't have a body.
+
+Lets take the example above of `/api/v1/user/{id}` end point.
+
+HTTP Options Request:
+```http
+OPTIONS /api/v1/users/1
+Host: testsite.com
+Content-Type: application/json
+Cache-Control: no-cache
+```
+
+HTTP Options Response:
+```http
+HTTP/1.1 200 OK
+Allow: GET,HEAD,PUT,DELETE
+Content-Type: application/json
+Content-Length: 117
+
+{
+  "GET": {
+    "response": "ref:/api/v1/types/user"
+  },
+  "PUT": {
+    "request": "ref:/api/v1/types/user"
+  }
+}
+```
+
+This tells you that the end-point supports GET, HEAD, PUT, and DELETE. If you do a `get` request the response will be a `user`. If you are making `put` request you need to have a `user` in the request. All other requests and responses have no body to be parsed.
 
 ## Libraries
 
