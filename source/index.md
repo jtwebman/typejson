@@ -3,11 +3,21 @@ title: TypeJSON
 subtitle: Strongly Typed JSON
 comments: true
 ---
-# TypeJSON - What is this?
+# What is this?
 
-This is my thoughts on making a Strongly Typed JSON format. I plan on writing a TypeScript, Elm, and PureScript implementation of this. If you want to help out and build a library in your favorite typed language go ahead and let me know so I can update this page.
+This is my thoughts on making a Strongly Typed JSON format. This is like JSON Schema in that you define what the document is suppose to look like but this is for validating the types and making less code on the each end to wire it up to real types in your system. This is not meant to replace JSON Schema.
 
-All values in TypeJSON have a type. The advantage is it is all built in standard JSON format. No special property names.
+Reasons for using TypeJSON vs JSON Schema:
+
+- JSON Schema really came from JSON and the small amount of types supported. TypeJSON supports many different value types and allows you to build any type you want.
+
+- JSON Schema is missing a way to name types. You can use `id` properties and `$ref` but they are not required and are normally urls. TypeJSON forces you to declare types for everything. There is no generic object type or anything type.
+
+- JSON Schema is missing union types. It does have anyOf or oneOf but that is only for arrays and not for basic single property types. TypeJSON has a Union type. This would allow you to define a endpoint that could return many different types.
+
+# TypeJSON Explained
+
+TypeJSON is a separate file like JSON Schema. Here is a basic example.
 
 The following JSON:
 ```json
@@ -17,28 +27,24 @@ The following JSON:
   "rating": 3.4
 }
 ```
-And this TypeJSON for the same thing.
+And this TypeJSON to describe the types.
 ```json
 {
-  "type": {
-    "customType": {
-      "name": "string",
-      "valid": "bool",
-      "rating": "float"
-    }
-  },
   "customType": {
-    "name": "This is my string",
-    "valid": true,
-    "rating": 3.4
-  }
+    "name": "string",
+    "valid": "bool",
+    "rating": "float"
+  },
+  "root": "customType"
 }
 ```
-TypeJSON you define all the types ahead of time in a JSON object. Everything is still in a normal JSON format, though many of the new supported basic types have to be strings to not lose values.
+TypeJSON is a flat structor where each property is a named type. The only requirement is that there is a root type defined state the type for the root object.
 
 ## Basic Types
 
-The basic types to map better with other typed languages are as follows:
+JSON is missing many of the types that we are use to in typed programming languages. Below is a list of the supported basic types in TypeJSON. Notice there is no object, or array type. I talk about them in their own sections below.
+
+The basic types and what they need to be in JSON to not lose values:
 
 - **int** (32-bit Signed Integer, can be a number or a string)
 - **long** (64-bit Signed Integer, needs to be a string)
@@ -53,43 +59,48 @@ The basic types to map better with other typed languages are as follows:
 - **bool** (Normal JSON boolean)
 - **string** (UTF-8 String)
 
-That list isn't the limit just the basic types supported. You can define any other types if you want. You can also alias types with a name.
+That list isn't the limit just the basic types supported. You can define any other types if you want. You can also alias these types with a name to better handle them in your code.
 
-Here is an example of all the other basic types in TypeJSON format:
+Here is an example of all the basic types in a JSON and TypeJSON file.
+
+TypeJSON:
 ```json
 {
-  "type": {
-    "example": {
-      "id": "uuid",
-      "version": "int",
-      "name": "string",
-      "watched": "long",
-      "status": "byte",
-      "favoritecolor": "short",
-      "valid": "bool",
-      "rating": "float",
-      "starpower": "double",
-      "cash": "decimal:19:4",
-      "started": "date",
-      "meeting": "time",
-      "modified": "datetime"
-    }
-  },
   "example": {
-    "id": "962ab988-b93d-11e6-80f5-76304dec7eb7",
-    "version": 20,
-    "name": "This is my string",
-    "watched": "9223372036854775807",
-    "status": 127,
-    "permissions": 32767,
-    "valid": true,
-    "rating": 3.4,
-    "starpower": "9007199254740992",
-    "cash": "9999999999999.0000",
-    "started": "2016-12-03",
-    "meeting": "16:00:00",
-    "modified": "2016-11-29T14:30:45Z"
-  }
+    "id": "uuid",
+    "version": "int",
+    "name": "string",
+    "watched": "long",
+    "status": "byte",
+    "favoriteColor": "short",
+    "valid": "bool",
+    "rating": "float",
+    "starPower": "double",
+    "cash": "decimal:19:4",
+    "started": "date",
+    "meeting": "time",
+    "modified": "datetime"
+  },
+  "root": "example"
+}
+```
+
+Valid JSON:
+```json
+{
+  "id": "962ab988-b93d-11e6-80f5-76304dec7eb7",
+  "version": 20,
+  "name": "This is my string",
+  "watched": "9223372036854775807",
+  "status": 127,
+  "favoriteColor": 32767,
+  "valid": true,
+  "rating": 3.4,
+  "starPower": "9007199254740992",
+  "cash": "9999999999999.0000",
+  "started": "2016-12-03",
+  "meeting": "16:00:00",
+  "modified": "2016-11-29T14:30:45Z"
 }
 ```
 
@@ -97,19 +108,33 @@ Here is an example of all the other basic types in TypeJSON format:
 
 Nulls are handled a little different. Nothing by default supports null but any type can support it by ending the type alias with a `?`. This make it easier to map to Maybe's or Nullable depending on the language you are using.
 
-Here is an example allowing nulls in TypeJSON:
+Here is an example allowing nulls in TypeJSON.
+
+TypeJSON (Notice the reason property has `?` on the end of the type string):
 ```json
 {
-  "type": {
-    "status": {
-      "level": "string",
-      "reason": "string?"
-    }
-  },
   "status": {
-    "level": "Good",
-    "reason": null
-  }
+    "level": "string",
+    "reason": "string?"
+  },
+  "root": "status"
+}
+```
+
+JSON:
+```json
+{
+  "level": "Good",
+  "reason": null
+}
+```
+
+Nullable or Maybe types also means it is not required to be present at all. So you could not even pass the property reason above. This in a sense makes null and undefined equal.
+
+This would be valid JSON from the TypeJSON above:
+```json
+{
+  "level": "Good"
 }
 ```
 
@@ -117,106 +142,156 @@ Here is an example allowing nulls in TypeJSON:
 
 Arrays and Objects in TypeJSON need to have a type defined and everything in that array will need to be the same type, though we support union types, see below. This does mean something that could be parsed in JSON could error in TypeJSON.
 
-Here is an example of an array of cities objects in TypeJSON:
+Here is an example of an array of cities objects in JSON and TypeJSON:
+
+TypeJSON (Notice the root has `[]` around to root type to indicate it is an array):
 ```json
 {
-  "type": {
-    "city": {
-      "id": "uuid",
-      "name": "string"
-    },
-    "cities": "[city]"
+  "city": {
+    "id": "uuid",
+    "name": "string"
   },
-  "cities": [
-    {
-      "id": "cce56e92-b946-11e6-80f5-76304dec7eb7",
-      "name": "Portland"
-    },
-    {
-      "id": "e3bf98d6-b946-11e6-80f5-76304dec7eb7",
-      "name": "New York"
-    },
-    {
-      "id": "edaf5534-b946-11e6-80f5-76304dec7eb7",
-      "name": "San Francisco"
-    }
-  ]
-}
+  "root": "[city]"
+},
 ```
-Notice you have to define the top level type `cities` in this example. Also notice to make it an array type it was surrounded buy `[]`.
+
+Valid JSON:
+```json
+[
+  {
+    "id": "cce56e92-b946-11e6-80f5-76304dec7eb7",
+    "name": "Portland"
+  },
+  {
+    "id": "e3bf98d6-b946-11e6-80f5-76304dec7eb7",
+    "name": "New York"
+  },
+  {
+    "id": "edaf5534-b946-11e6-80f5-76304dec7eb7",
+    "name": "San Francisco"
+  }
+]
+```
 
 ## Union types
 
-Last TypeJSON supports union types. To make them you just separate the types by a `|`. This lets you support the full power of using something like JSON and still staying type safe. A union type is a type that can represent multiple types but since the parser needs to be able to infer them they can only be object types and each type needs to have different property names. We don't support basic types in union types but you could build a simple object type to get around this.
+Last TypeJSON supports union types. A union type is a type that can represent multiple types. To make them you just separate the types by a `|`. This lets you support the full power of using something like JSON and still staying type safe.
 
-Here is an example using a union type:
+TypeJSON needs to be able to infer the type so it will try and match the type in the order they are given. Say you had a type `long|string`. Since longs have to be strings in JSON to not lose values the TypeJSON parse will first try and make a long from the string. If it doesn't match it will then just leave it a string.
+
+Here is an example using a union type in an array. It also alias `uuid` as a type id. You then could then handle the `id` type in the parser.
+
+TypeJSON:
 ```json
 {
-  "type": {
-    "id": "uuid",
-    "city": {
-      "id": "id",
-      "city": "string"
-    },
-    "state": {
-      "id": "id",
-      "state": "string"
-    },
-    "country": {
-      "id": "id",
-      "country": "string"
-    },
-    "locations": "[city|state|country]"
+  "id": "uuid",
+  "city": {
+    "id": "id",
+    "city": "string"
   },
-  "locations": [
-    {
-      "id": "cce56e92-b946-11e6-80f5-76304dec7eb7",
-      "city": "Portland"
-    },
-    {
-      "id": "e3bf98d6-b946-11e6-80f5-76304dec7eb7",
-      "state": "Oregon"
-    },
-    {
-      "id": "edaf5534-b946-11e6-80f5-76304dec7eb7",
-      "country": "USA"
-    }
-  ]
+  "state": {
+    "id": "id",
+    "state": "string"
+  },
+  "country": {
+    "id": "id",
+    "country": "string"
+  },
+  "root": "[city|state|country]"
 }
 ```
 
-## Type Section
-
-All types need to be setup in this section. They don't have to be in any order and they can be used in other types in the same section.
-
-Here is an example with some custom types. We alias id as a `uuid` and use it in the `user` type:
+Valid JSON:
 ```json
-{
-  "type": {
-    "id": "uuid",
-    "tag": "string",
-    "user": {
-      "id": "id",
-      "firstName": "string?",
-      "lastName": "string?",
-      "email": "string",
-      "tags": "[tag]"
-    }
+[
+  {
+    "id": "cce56e92-b946-11e6-80f5-76304dec7eb7",
+    "city": "Portland"
   },
-  "user": {
-    "id": "962ab988-b93d-11e6-80f5-76304dec7eb6",
-    "firstName": null,
-    "lastName": "Turner",
-    "email": "jt@typejson.org",
-    "tags": ["nerd", "starwars", "programmer"]
+  {
+    "id": "e3bf98d6-b946-11e6-80f5-76304dec7eb7",
+    "state": "Oregon"
+  },
+  {
+    "id": "edaf5534-b946-11e6-80f5-76304dec7eb7",
+    "country": "USA"
   }
+]
+```
+
+## Multiple Files
+
+Now you might want to define types in one file and reference in multiple places so you don't have to keep defining them. If you want to reference a type in another file you will set the type to `ref:path/to/file#name`.
+
+It will work a lot like how JSON Schema uses `$ref`. A few differences is you don't have to add the `#name` on the end if you are going to use the root type.
+
+If the original document was loaded from a http url it will use that path to load any references. If you load the file via the file system it will use that and you don't have to add the extension if the file is a .json file. Both can be full urls or paths or relative paths.
+
+Lets take the union type example above. I could make a file for each type all in the same folder or url path:
+
+id.json:
+```json
+{
+  "id": "uuid",
+  "root": "id"
 }
 ```
 
-## Top Level Object
+city.json (Notice `id` references the id.json):
+```json
+{
+  "city": {
+    "id": "ref:id",
+    "city": "string"
+  },
+  "root": "city"
+}
+```
 
-TypeJSON top level object can only have two properties. The first is `type` with at least one type defined in it. The other property needs to be a name defined in the type section. So if the top level object is an array you have to define that type as well and use the name. See example above with `Arrays and Objects`.
+state.json (Notice the `id` reference here actually use the type in the doc but isn't needed as it is used for the root):
+```json
+{
+  "state": {
+    "id": "ref:id#id",
+    "state": "string"
+  },
+  "root": "state"
+}
+```
+
+country.json:
+```json
+{
+  "country": {
+    "id": "ref:id",
+    "country": "string"
+  },
+  "root": "country"
+}
+```
+
+locations.json (This references all 3 types above as a union type):
+```json
+{
+  "locations": "[ref:city|ref:state|ref:country]",
+  "root": "locations"
+}
+```
+
+The above locations file could have also just had the root set and the parser would then use the file name or last path segment as the type name when parsing.
+
+locations.json (With just root):
+```json
+{
+  "root": "[ref:city|ref:state|ref:country]"
+}
+```
+
 
 ## Libraries
 
-Currently none as I want to run this by a bunch of programmers first to see if I am crazy to build it this way. What do you think? Please leave feedback in the comments below and see if we can't make a better strongly typed JSON format.
+Currently none as I want to run this by a bunch of programmers first to see if I am crazy to build it this way. I plan on writing a TypeScript, Elm, and PureScript implementation of this. If you want to help out and build a library in your favorite typed language go ahead and let me know so I can update this page. Keep in mind this is still a very new spec and we might have to make changes for edges cases I am not thinking about.
+
+## Conclusion
+
+What do you think? Please leave feedback in the comments below and see if we can't make a better strongly typed JSON format.
