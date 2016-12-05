@@ -2,7 +2,7 @@
 title: TypeJSON
 subtitle: Strongly Typed JSON
 comments: true
-share_cover: /img/bg-cover.jpg
+share_cover: /img/index-share-cover.jpg
 ---
 # What is this?
 
