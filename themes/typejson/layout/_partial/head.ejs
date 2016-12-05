@@ -35,6 +35,7 @@
     <% } else if (config.cover) { %>
         <meta property="og:image" content="<%= config.url %><%= config.cover %>"/>
     <% } %>
+    <meta property="og:url" content="<%= url %>" />
     <meta name="twitter:card" content="summary" />
     <% if(theme.twitter_handle) { %>
         <meta name="twitter:site" content="<%= theme.twitter_handle %>>" />
