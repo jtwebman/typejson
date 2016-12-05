@@ -11,7 +11,7 @@ Reasons for using TypeJSON vs JSON Schema:
 
 - JSON Schema really came from JSON and the small amount of types supported. TypeJSON supports many different value types and allows you to build any type you want. This lets you map JSON directly to your types in your system.
 
-- JSON Schema is missing a way to name types. You can use `id` properties and `$ref` but they are not required and are normally urls.
+- JSON Schema is missing a way to name types. You can use `id` properties and `$ref` but they are not required and are normally urls. TypeJSON allows you to name them and the parser should give you a way to mapped them to your type system.
 
 - TypeJSON forces you to declare types for everything. There is no generic object type or anything type.
 
@@ -68,7 +68,7 @@ The basic types and what they need to be in JSON to not lose values:
 - **base64** (This is a base64 string that will be converted to a byte array, allowing you to support binary data, though I might make another binary end-point with no json for that)
 - **ref** (This is explained farther down for referencing other files)
 
-Here is an example of all the basic types in a JSON and TypeJSON file.
+Here is an example of all the basic types in a TypeJSON and valid JSON file.
 
 TypeJSON:
 ```json
@@ -117,7 +117,7 @@ The nice part about TypeJSON is this list isn't the limit. It is just the basic 
 
 Another example would be a type like `"id": "string?"`. It would be an id type and could use your own code to set what that is suppose to mean. The `?` is talked about down below as being a nullable type. This would allow you to have a Maybe ID so the create request could leave off the id but the response would return it with the id.
 
-If you define your own type you can also include parameters after the name, like the decimal type, using `:` to separate each one. So if you wanted to make your own limited string length type you could define it this way `"lstring:int": "string"` and then when using it on a property like `"email": "lstring:255"` the parser would give you the parameter 255 as an `int` and you could make sure the string wasn't longer.
+If you define your own type you can also include parameters after the name, like the decimal type, using `:` to separate each one. So if you wanted to make your own limited string length type you could define it this way `"lstring:int": "string"` and then when using it on a property like `"email": "lstring:255"` the parser would give you the parameter 255 as an `int` and you could make sure the string wasn't longer. Think of this as a function type.
 
 ## Nulls
 
@@ -153,7 +153,7 @@ This would be valid JSON from the TypeJSON above:
 }
 ```
 
-If your type is a custom type or the decimal type and takes parameters make sure the `?` is after the parameters. To use the example above with a limited length string that could be null would look like this `"email": "lstring:255?"`.
+If your type is a custom type or the decimal type that takes parameters make sure the `?` is after the parameters. To use the example above with a limited length string that could be null would look like this `"email": "lstring:255?"`.
 
 ## Arrays and Objects (Custom Types)
 
@@ -303,11 +303,27 @@ You need to be careful here when dealing with null values in the types in the un
 ```
 The `id` and the `globalId` type can both be null but if nothing or null is passed for the type `allId` you will always get a Maybe or Nullable `id` type as they are matched in the order they are written in.
 
+You also need to be careful with your object types. Take this example:
+```json
+{
+  "city": {
+    "id": "int?",
+    "name": "string"
+  },
+  "state": {
+    "id": "int?",
+    "name": "string"
+  },
+  "locations": "city|state"
+}
+```
+The `city` and `state` type have the exact same properties. So locations union type will always return a city type as it will first check if the type matches city which it will always do.
+
 ## Ref (Multiple Files)
 
 Now you might want to define types in more then one file as well as reference types in multiple places so you don't have to keep defining them. If you want to reference a type in another file you will set the type to `ref:path/to/file:name` or `ref:path/to/file` for the root type.
 
-The `ref` type is defined like this `ref:string|ref:string:string`. Basically it is a union type with a either one or two parameters as a string.
+The `ref` type is defined like this `ref:string` or `ref:string:string`. Basically it is a union type with a either one or two parameters as a string.
 
 If the original document was loaded from a http url it will use that path to load any references. If you load the file via the file system it will use that and you don't have to add the extension if the file is a .json file. Both can be full urls or paths or relative paths.
 
@@ -332,7 +348,7 @@ city.json (Notice `id` references the id.json):
 }
 ```
 
-state.json (Notice the `id` reference here actually use the type in the doc but isn't needed as it is used for the root):
+state.json (Notice the `id` reference here actually uses the type in the doc but isn't needed as it is used for the root):
 ```json
 {
   "state": {
