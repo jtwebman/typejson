@@ -11,7 +11,9 @@ Reasons for using TypeJSON vs JSON Schema:
 
 - JSON Schema really came from JSON and the small amount of types supported. TypeJSON supports many different value types and allows you to build any type you want.
 
-- JSON Schema is missing a way to name types. You can use `id` properties and `$ref` but they are not required and are normally urls. TypeJSON forces you to declare types for everything. There is no generic object type or anything type.
+- JSON Schema is missing a way to name types. You can use `id` properties and `$ref` but they are not required and are normally urls.
+
+- TypeJSON forces you to declare types for everything. There is no generic object type or anything type.
 
 - JSON Schema is missing union types. It does have anyOf or oneOf but that is only for arrays and not for basic single property types. TypeJSON has a Union type. This would allow you to define a endpoint that could return many different types.
 
@@ -42,11 +44,11 @@ And this TypeJSON to describe the types.
   "root": "customType"
 }
 ```
-TypeJSON is a flat structor where each property is a named type. The only requirement is that there is a root type defined state the type for the root object.
+TypeJSON is a flat structor where each property is a named type. The only requirement is that there is a root type defined state the type for the root object. Names can't have `[`, `]`, `?`, or `|` in them. A name can have a `:` in them but it is used to set the type for the parameter and is not used for the name. This is talked about more below.
 
 ## Basic Types
 
-JSON is missing many of the types that we are use to in typed programming languages. Below is a list of the supported basic types in TypeJSON. Notice there is no object, or array type. I talk about them in their own sections below.
+JSON is missing many of the types that we enjoy in typed programming languages. Below is a list of the supported basic types in TypeJSON. Notice there is no object, or array type. I talk about them in their own sections below.
 
 The basic types and what they need to be in JSON to not lose values:
 
@@ -62,8 +64,8 @@ The basic types and what they need to be in JSON to not lose values:
 - **uuid** (UUID in canonical form, needs to be a string)
 - **bool** (Normal JSON boolean)
 - **string** (UTF-8 String)
-
-That list isn't the limit just the basic types supported. You can define any other types if you want. You can also alias these types with a name to better handle them in your code.
+- **base64** (This is a base64 string that will be converted to a byte array, allowing you to support binary data, though I might make another binary end-point with no json for that)
+- **ref** (This is explained farther down for referencing other files)
 
 Here is an example of all the basic types in a JSON and TypeJSON file.
 
@@ -83,7 +85,8 @@ TypeJSON:
     "cash": "decimal:19:4",
     "started": "date",
     "meeting": "time",
-    "modified": "datetime"
+    "modified": "datetime",
+    "image": "base64"
   },
   "root": "example"
 }
@@ -104,13 +107,20 @@ Valid JSON:
   "cash": "9999999999999.0000",
   "started": "2016-12-03",
   "meeting": "16:00:00",
-  "modified": "2016-11-29T14:30:45Z"
+  "modified": "2016-11-29T14:30:45Z",
+  "image": "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
 }
 ```
 
+The nice part about TypeJSON is this list isn't the limit just the basic types supported. You can define any other type if you want by using a type like `"datetimetz": "string"` that could be a ISO 8601 date string with timezones supported.
+
+Another example would be a type like `"id": "string?"`. It would be an id type and could use your own code to set what that is suppose to mean. The `?` is talked about down below as being a nullable type. This would allow you to have a Maybe ID so the create request could leave off the id but the response would return it with the id.
+
+If you define your own type you can also include parameters after the name, like the decimal type, using `:` to separate each one. So if you wanted to make your own limited string length type you could define it this way `"lstring:int": "string"` and then when using it on a property like `"email": "lstring:255"` the parser would give you the parameter 255 as an `int` and you could make sure the string wasn't longer.
+
 ## Nulls
 
-Nulls are handled a little different. Nothing by default supports null but any type can support it by ending the type alias with a `?`. This make it easier to map to Maybe's or Nullable depending on the language you are using.
+Nulls are handled a little different. Nothing by default supports null but any type can support it by ending the type alias with a `?`. This makes it easier to map to Maybe's or Nullable depending on the language you are using.
 
 Here is an example allowing nulls in TypeJSON.
 
@@ -133,7 +143,7 @@ JSON:
 }
 ```
 
-Nullable or Maybe types also means it is not required to be present at all. So you could not even pass the property reason above. This in a sense makes null and undefined equal.
+Nullable or Maybe types also means it is not required to be present at all. So you could not even pass the property reason above. This in a sense makes `null` and `undefined` equal.
 
 This would be valid JSON from the TypeJSON above:
 ```json
@@ -142,20 +152,23 @@ This would be valid JSON from the TypeJSON above:
 }
 ```
 
+If your type is a custom type or the decimal type and takes parameters make sure the `?` is before the first `:`. To use the example above with a limited length string that could be null would look like this `"email": "lstring?:255"`.
+
 ## Arrays and Objects (Custom Types)
 
-Arrays and Objects in TypeJSON need to have a type defined and everything in that array will need to be the same type, though we support union types, see below. This does mean something that could be parsed in JSON could error in TypeJSON.
+Arrays and Objects in TypeJSON need to have a type defined and everything in that array will need to be the same type, though we support union types, see below. When defining arrays you surround the type in `[]`. For objects you use the normal json `{}` structure.
 
 Here is an example of an array of cities objects in JSON and TypeJSON:
 
-TypeJSON (Notice the root has `[]` around to root type to indicate it is an array):
+TypeJSON (Notice the cities has `[]` around the city type to indicate it is an array):
 ```json
 {
   "city": {
     "id": "uuid",
     "name": "string"
   },
-  "root": "[city]"
+  "cities": "[city]",
+  "root": "cities"
 },
 ```
 
@@ -183,7 +196,7 @@ Last TypeJSON supports union types. A union type is a type that can represent mu
 
 TypeJSON needs to be able to infer the type so it will try and match the type in the order they are given. Say you had a type `long|string`. Since longs have to be strings in JSON to not lose values the TypeJSON parse will first try and make a long from the string. If it doesn't match it will then just leave it a string.
 
-Here is an example using a union type in an array. It also alias `uuid` as a type id. You could then handle the `id` type in the parser.
+Here is an example using a union type in an array. It also defines `uuid` as type `id`. You could then handle the `id` type in the parser.
 
 TypeJSON:
 ```json
@@ -223,11 +236,23 @@ Valid JSON:
 ]
 ```
 
-## Multiple Files
+Union types also support allowing null or maybe type. All you have to do is add a `?` to the type you want to be passed as a maybe or nullable. So if the union type can be a long, or a maybe string, then the type would be `long|string?`.
 
-Now you might want to define types in one file and reference in multiple places so you don't have to keep defining them. If you want to reference a type in another file you will set the type to `ref:path/to/file#name`.
+You need to be careful here when dealing with null values in the types in the union. Take this example:
+```json
+{
+  "id": "int?",
+  "globalId": "uuid?",
+  "allId": "id|uuid"
+}
+```
+The `id` and the `globalId` type can both be null but if nothing or null is passed for the type `allId` you will always get a Maybe or Nullable `id` type as they are matched in the order they are written in.
 
-It will work a lot like how JSON Schema uses `$ref`. A few differences is you don't have to add the `#name` on the end if you are going to use the root type.
+## Ref (Multiple Files)
+
+Now you might want to define types in more then one file as well as reference types in multiple places so you don't have to keep defining them. If you want to reference a type in another file you will set the type to `ref:path/to/file:name` or `ref:path/to/file` for the root type.
+
+The `ref` type is defined like this `ref:string|ref:string:string`. Basically it is a union type with a either one or two parameters as a string.
 
 If the original document was loaded from a http url it will use that path to load any references. If you load the file via the file system it will use that and you don't have to add the extension if the file is a .json file. Both can be full urls or paths or relative paths.
 
@@ -256,7 +281,7 @@ state.json (Notice the `id` reference here actually use the type in the doc but 
 ```json
 {
   "state": {
-    "id": "ref:id#id",
+    "id": "ref:id:id",
     "state": "string"
   },
   "root": "state"
@@ -338,7 +363,7 @@ Content-Length: 114
 
 {
   "root": {
-    "id": "int",
+    "id": "int?",
     "email": "string",
     "firstName": "string?",
     "lastName": "string?"
