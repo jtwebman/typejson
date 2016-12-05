@@ -477,32 +477,39 @@ This tells you that the end-point supports GET, HEAD, PUT, and DELETE. If you do
 
 ## TypeJSON in TypeJSON
 
-If you were to define TypeJSON in TypeJSON this is what all the types would look like using just the basic `double`, `string`, and `bool` types supported in raw JSON:
+If you were to define TypeJSON in TypeJSON this is what all the types would look like using just the basic `number`, `string`, and `boolean` types supported in raw JSON:
 ```json
 {
-  "int": "double|string",
+  "int": "number|string",
   "long": "string",
-  "float": "double|string",
-  "double": "double|string",
+  "float": "number|string",
+  "double": "number|string",
   "decimal:byte:byte": "string",
-  "byte": "double|string",
-  "short": "double|string",
+  "byte": "number|string",
+  "short": "number|string",
   "date": "string",
   "time": "string",
   "datetime": "string",
   "uuid": "string",
   "base64": "string",
   "string": "string",
-  "bool": "bool",
+  "bool": "boolean",
   "refRoot:string": "string",
   "refNamed:string:string": "string",
   "ref": "refRoot|refNamed"
 }
 ```
+Internally in the parser will have to handle the `Maybe`, `Union`, `Array`, and `Object` type depending on the language used. Like for objects in a functional language you might use records or tuples and arrays might use some list type.
+
+If your language doesn't support some of the smaller types like a short or byte you can always use a bigger type like int or double for them like in the case for JavaScript.
 
 ## Libraries
 
-Currently none as I want to run this by a bunch of programmers first to see if I am crazy to build it this way. I plan on writing a TypeScript, Elm, and PureScript implementation of this. If you want to help out and build a library in your favorite typed language go ahead and let me know so I can update this page. Keep in mind this is still a very new spec and we might have to make changes for edges cases I am not thinking about.
+Currently none as I want to run this by a bunch of programmers first to see if I am crazy to build it this way.
+
+I plan on writing a JavaScript, Elm, PureScript, Elixir, Java, and C# implementation of this. If you want to help out and build a library in your favorite typed language, or in one I have not started, go ahead and let me know so I can update this page.
+
+Keep in mind this is still a very new spec and we might have to make changes for edges cases I am not thinking about.
 
 ## Conclusion
 
