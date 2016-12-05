@@ -3,6 +3,7 @@ title: TypeJSON
 subtitle: Strongly Typed JSON
 comments: true
 share_cover: /img/index-share-cover.jpg
+author: http://facebook.com/jtwturner
 ---
 # What is this?
 

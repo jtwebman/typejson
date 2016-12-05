@@ -12,7 +12,7 @@
         <meta name="description" content="<%= strip_html(page.content).replace(/^\s*/, '').replace(/\s*$/, '').substring(0, 150) %>">
     <% } %>
     <% if (config.author){ %>
-        <meta name="author" content="<%= config.author %>">
+        <meta property="article:author" content="<%= page.author %>">
     <% } %>
     <% if (page.title){ %>
         <meta property="og:title" content="<%= page.title %>"/>

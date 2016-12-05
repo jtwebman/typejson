@@ -4,8 +4,8 @@
 
 # Site
 title: TypeJSON
-subtitle: JSON With the Missing Types
-description: TypeJSON is a JSON compliant way of providing extra type info.
+subtitle: Strongly Typed JSON
+description: Strongly Typed JSON
 author: JT Turner
 language: en
 timezone: America/Los_Angeles
