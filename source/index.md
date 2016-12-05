@@ -5,21 +5,21 @@ comments: true
 ---
 # What is this?
 
-This is my thoughts on making a Strongly Typed JSON format. This is like JSON Schema in that you define what the document is suppose to look like but this is for validating the types and making less code on the each end to wire it up to real types in your system. This is not meant to replace JSON Schema.
+This is my thoughts on making a Strongly Typed JSON format. TypeJSON is like JSON Schema in that you define what the document is suppose to look like but in types. It is a way to make it less code on each end to wire it up to a typed language in your system. This is not meant to replace JSON Schema or to validate the content of the type but you could do that if you wanted with parameters talked about below.
 
 Reasons for using TypeJSON vs JSON Schema:
 
-- JSON Schema really came from JSON and the small amount of types supported. TypeJSON supports many different value types and allows you to build any type you want.
+- JSON Schema really came from JSON and the small amount of types supported. TypeJSON supports many different value types and allows you to build any type you want. This lets you map JSON directly to your types in your system.
 
 - JSON Schema is missing a way to name types. You can use `id` properties and `$ref` but they are not required and are normally urls.
 
 - TypeJSON forces you to declare types for everything. There is no generic object type or anything type.
 
-- JSON Schema is missing union types. It does have anyOf or oneOf but that is only for arrays and not for basic single property types. TypeJSON has a Union type. This would allow you to define a endpoint that could return many different types.
+- JSON Schema is missing union types. It does have anyOf or oneOf but that is only for arrays and not for basic single property types. TypeJSON has a Union type. This would allow you to define an endpoint that could return many different types.
 
-The TypeJSON parser can be just a simple parser on top of the already existing JSON parsers that will allow you to define functions to be called for each type or if your languages supports pattern matching you could use that. This will definitely depend on what language it is implemented in.
+TypeJSON is valid JSON so the parser can be just a simple parser on top of an already existing JSON parsers that will allow you to define functions to be called for each type or if your languages supports pattern matching you could use that. This will definitely depend on what language it is implemented in.
 
-The number one goal of TypeJSON is to make it less work for you to map JSON to your types not to validate what is in that type is valid.
+The number one goal of TypeJSON is to make it less work for you to map JSON to your types not to validate what is in the type is valid. Since validation almost always includes some business logic for the system I will leave that up to you to implement.
 
 # TypeJSON Explained
 
@@ -44,7 +44,7 @@ And this TypeJSON to describe the types.
   "root": "customType"
 }
 ```
-TypeJSON is a flat structor where each property is a named type. The only requirement is that there is a root type defined state the type for the root object. Names can't have `[`, `]`, `?`, or `|` in them. A name can have a `:` in them but it is used to set the type for the parameter and is not used for the name. This is talked about more below.
+TypeJSON is a flat structure where each property is a named type. The only requirement is that there is a root type defined. Names can't have `[`, `]`, `?`, or `|` in them. A name can have a `:` in them but it is used to set the type for the parameter and is not used for the name. This is talked about more below.
 
 ## Basic Types
 
@@ -189,6 +189,60 @@ Valid JSON:
   }
 ]
 ```
+
+Here is an example of an object that can have objects and arrays of objects in it. Notice how they are all defined in a flat structure:
+
+TypeJSON:
+```json
+{
+  "user": {
+    "id": "uuid?",
+    "email": "string",
+    "groups": "[group]?",
+    "login": "credential?"
+  },
+  "group": {
+    "id": "uuid?",
+    "name": "string",
+  },
+  "credential": {
+    "id": "uuid?",
+    "username": "string",
+    "password": "password?"
+  },
+  "password": "string",
+  "root": "user"
+}
+```
+
+Valid JSON (Though you should never pass back a hashed password in real life):
+```json
+{
+  "id": "962ab988-b93d-11e6-80f5-76304dec7eb7",
+  "email": "test@testsite.com",
+  "groups": [
+    {
+      "id": "938a8db0-156e-4804-8f2a-aa3502ecd585",
+      "name": "Admins"
+    }
+  ],
+  "credential": {
+    "id": "d623b9e1-6dfb-4051-a4d3-c566556d971e",
+    "username": "testuser",
+    "password": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+  }
+}
+```
+
+Valid JSON (Another example of from the same TypeJSON):
+```json
+{
+  "email": "test@testsite.com"
+}
+```
+All other types were nullable or maybes including the groups array. So you can define arrays that can be null or not set as well. You just have to add `?` on the outside of the `[]` brackets.
+
+Arrays can also support nulls inside them as then each type that is return will be a Maybe or Nullable. So if the type was `[group?]` then you could have an array with null in it like `[null, { "name": "Group Name" }]`. Just know all types coming from this array would be maybes or null if the language supported nulls. 
 
 ## Union types
 
