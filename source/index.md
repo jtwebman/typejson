@@ -112,7 +112,7 @@ Valid JSON:
 }
 ```
 
-The nice part about TypeJSON is this list isn't the limit just the basic types supported. You can define any other type if you want by using a type like `"datetimetz": "string"` that could be a ISO 8601 date string with timezones supported.
+The nice part about TypeJSON is this list isn't the limit. It is just the basic types supported. You can define any other type if you want by using a type like `"datetimetz": "string"` that could be a ISO 8601 date string with timezones supported.
 
 Another example would be a type like `"id": "string?"`. It would be an id type and could use your own code to set what that is suppose to mean. The `?` is talked about down below as being a nullable type. This would allow you to have a Maybe ID so the create request could leave off the id but the response would return it with the id.
 
@@ -120,7 +120,7 @@ If you define your own type you can also include parameters after the name, like
 
 ## Nulls
 
-Nulls are handled a little different. Nothing by default supports null but any type can support it by ending the type alias with a `?`. This makes it easier to map to Maybe's or Nullable depending on the language you are using.
+Nulls are handled a little different. Nothing by default supports null but any type can support it by ending the type name with a `?`. This makes it easier to map to Maybe's or Nullable depending on the language you are using.
 
 Here is an example allowing nulls in TypeJSON.
 
@@ -242,7 +242,7 @@ Valid JSON (Another example of from the same TypeJSON):
 ```
 All other types were nullable or maybes including the groups array. So you can define arrays that can be null or not set as well. You just have to add `?` on the outside of the `[]` brackets.
 
-Arrays can also support nulls inside them as then each type that is return will be a Maybe or Nullable. So if the type was `[group?]` then you could have an array with null in it like `[null, { "name": "Group Name" }]`. Just know all types coming from this array would be maybes or null if the language supported nulls. 
+Arrays can also support nulls inside them as then each type that is returned will be a Maybe or Nullable. So if the type was `[group?]` then you could have an array with null in it like `[null, { "name": "Group Name" }]`. Just know all types coming from this array would be maybe's forcing you to handle that. So I might avoid doing that.
 
 ## Union types
 
